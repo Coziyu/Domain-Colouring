@@ -41,12 +41,6 @@ void processInput(GLFWwindow *window){
         vertices[3] -= 0.01;
         vertices[6] -= 0.01;
     }
-    if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
-        blend += 0.05; 
-    }
-    if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
-        blend -= 0.05; 
-    }
 }
 void reloadShader(GLFWwindow* window, Shader* shader){
     shader->reload("./shaders/vertexShader1.vert","./shaders/fragmentShader1.frag");
