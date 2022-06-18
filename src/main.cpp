@@ -33,7 +33,6 @@ int main(){
     for(int i = 0; i < 2000; i++) {
         float x = (i - 1000.0f) / 100.0f;
         graph.push_back(Point(x,(sin(x * 10.0f) / (1.0f + x * x))));
-        std::cout << graph[i - 0].m_x << " , " << graph[i - 0].m_y<< "\n";
     }
 
     glfwInit();
@@ -67,7 +66,7 @@ int main(){
     glBindVertexArray(VAO); //<--- Start of VAO Bind
     
     glBindBuffer(GL_ARRAY_BUFFER, VBO_Vertex); 
-    glBufferData(GL_ARRAY_BUFFER, graph.size() * sizeof(float), &graph[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, graph.size() * sizeof(Point), &graph[0], GL_STATIC_DRAW);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
