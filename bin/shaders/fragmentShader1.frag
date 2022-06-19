@@ -4,6 +4,7 @@ out vec4 FragColour;
 in vec3 out_vecCol;
 
 uniform bool enable_contours;
+uniform float blend;
 
 //Declaration
 float c_argument(vec2 z);
@@ -132,7 +133,7 @@ vec3 hsl_to_rgb(float h, float s, float l){
 
     vec3 rgb = vec3((temp.x + m), (temp.y + m), (temp.z + m));
 
-    return rgb;
+    return temp;
 }
 
 //HSL Colour Functions
@@ -153,18 +154,20 @@ vec4 colour_point(vec2 z, bool enable_contour){
     if(phi < 0){
         phi += 2 * M_PI;
     }
-    float b = 0.5 + fract(log2(c_modulus(z)));
+    //float b = 0.5 + fract(blend * log2(r));
+    float b = fract(blend * log2(r)) > 0.5 ? fract(blend * log2(r)) : fract(blend * log2(r)) + 0.5;
 
 
     float h = phi;
     float s = 1.0f;
-    float l = enable_contour ? (2 / M_PI) * atan(b) : lightness(z); //Modulus Contour
+    //float l = enable_contour ? (2 / M_PI) * atan(b) : 0.5f; //Modulus Contour
+    float l = enable_contour ? (2 / M_PI) * atan(b) : 0.5f; //Modulus Contour
 
     return vec4(hsl_to_rgb(h, s, l), 1.0f);
 }
 void main(){
     vec2 z = out_vecCol.xy;
-    z = c_mul(c_pow(0.1,z), z);
-
+    //z = c_mul(c_pow(0.1,2 * z),2 * z);
+    z = c_pow(z,3) - vec2(1,0);
     FragColour = colour_point(z, enable_contours);
 }

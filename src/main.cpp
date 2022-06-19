@@ -44,7 +44,7 @@ std::vector<unsigned int> generate_grid_indices(unsigned int size){ //Generate i
 int main(){
 
     std::vector<Point> grid;
-    int span = 111; //* NEEDS TO BE ODD
+    int span = 3; //* NEEDS TO BE ODD
     if((span + 1) % 2){
         std::cout << "WARNING: span NEEDS TO BE ODD." << std::endl;
     }
@@ -103,7 +103,10 @@ int main(){
     myShader.use();
 
     bool enable_contours = false;
+    float blend = 1;
     myShader.setBool("enable_contours", enable_contours);
+    myShader.setFloat("blend", blend);
+
 
     bool button_r_pressed = false; //For hot shader reloading
     bool button_f_pressed = false; //To toggle polygonmode
@@ -115,6 +118,7 @@ int main(){
             reloadShader(window, &myShader);
             myShader.use();
             myShader.setBool("enable_contours", enable_contours);
+            myShader.setFloat("blend", blend);
             button_r_pressed = true;
         }
         if(glfwGetKey(window,GLFW_KEY_R) == GLFW_RELEASE){
@@ -138,6 +142,20 @@ int main(){
         if(glfwGetKey(window,GLFW_KEY_SPACE) == GLFW_RELEASE){
             button_space_pressed = false;
         }
+
+        if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
+            blend += 0.05;
+            myShader.setFloat("blend", blend);
+        }
+        if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
+            blend -= 0.05;
+            myShader.setFloat("blend", blend);
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_CAPS_LOCK) == GLFW_PRESS){
+            blend = 1;
+            myShader.setFloat("blend", blend);
+        }   
         
         //rendering commands
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
