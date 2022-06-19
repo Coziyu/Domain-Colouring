@@ -14,3 +14,7 @@ void processInput(GLFWwindow *window){
 void reloadShader(GLFWwindow* window, Shader* shader){
     shader->reload("./shaders/vertexShader1.vert","./shaders/fragmentShader1.frag");
 }
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset){
+    mouse_scroll_y_offset = yoffset/10;
+    std::cout << mouse_scroll_y_offset << "\n";
+}

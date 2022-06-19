@@ -19,7 +19,10 @@ unsigned const int WIN_WIDTH = 800;
 unsigned const int WIN_HEIGHT = 800; 
 
 //* FRAGMENT INTERPOLATION ACTUALLY PASSES INTERPOLATED COORDINATED INTO THE FRAGMENT SHADER!!!!!!!
-//TODO Find a way to render an area bigger than the viewport. I want to be able to specfiy the render area and resolution
+//TODO: Implement mouse drag translation
+//TODO: Implement equation parser into fragment shader?
+//TODO: Implement phase contours
+//TODO: Implement zoom aware WASD translation
 
 struct Point {
   float m_x;
@@ -45,8 +48,8 @@ std::vector<unsigned int> generate_grid_indices(unsigned int size){ //Generate i
 int main(){
 
     std::vector<Point> grid;
-    int span = 33; //* NEEDS TO BE ODD
-    float density = 1.0f;
+    int span = 3; //* NEEDS TO BE ODD
+    float density = 0.1f;
     if((span + 1) % 2){
         std::cout << "WARNING: span NEEDS TO BE ODD." << std::endl;
     }
@@ -80,7 +83,9 @@ int main(){
         std::cout << "Failed to initialze GLAD\n";
         return -1;
     }
+    glfwSetScrollCallback(window, scroll_callback);
 
+    
     Shader myShader("./shaders/vertexShader1.vert","./shaders/fragmentShader1.frag");
 
     unsigned int VAO; 
@@ -123,90 +128,98 @@ int main(){
     while(!glfwWindowShouldClose(window)){        
         // inputA
         processInput(window);
-        if((glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) && !button_r_pressed){
-            reloadShader(window, &myShader);
-            myShader.use();
-            myShader.setBool("enable_contours", enable_contours);
-            myShader.setFloat("blend", blend);
-            myShader.setMat("model", model);
-            myShader.setMat("view", view);
-            button_r_pressed = true;
-        }
-        if(glfwGetKey(window,GLFW_KEY_R) == GLFW_RELEASE){
-            button_r_pressed = false;
-        }
-        //
-        if(glfwGetKey(window,GLFW_KEY_F) == GLFW_PRESS && !button_f_pressed){
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            button_f_pressed = true;
-        }
-        if(glfwGetKey(window,GLFW_KEY_F) == GLFW_RELEASE){
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            button_f_pressed = false;
-        }
-        //
-        if(glfwGetKey(window,GLFW_KEY_SPACE) == GLFW_PRESS && !button_space_pressed){
-            enable_contours = enable_contours ? false : true;
-            button_space_pressed = true;
-            myShader.setBool("enable_contours", enable_contours);
-        }
-        if(glfwGetKey(window,GLFW_KEY_SPACE) == GLFW_RELEASE){
-            button_space_pressed = false;
-        }
-        //
-        if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS){
-            blend += 0.005;
-            myShader.setFloat("blend", blend);
-        }
-        if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS){
-            blend -= 0.005;
-            myShader.setFloat("blend", blend);
-        }
-        //
-        if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
-            view = glm::scale(view, glm::vec3(1.025f, 1.025f, 0.0f));
-            myShader.setMat("view", view);
-        }
-        if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
-            view = glm::scale(view, glm::vec3(0.975f, 0.975f, 0.0f));
-            myShader.setMat("view", view);
-        }
-        if(glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS){
-            view = glm::mat4(1.0f);
-            myShader.setMat("view", view);
-        }
-        //
-        if(glfwGetKey(window, GLFW_KEY_CAPS_LOCK) == GLFW_PRESS){
-            blend = 1;
-            myShader.setFloat("blend", blend);
-        } 
-        //
-        if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS){
-            model = glm::translate(model, glm::vec3(0.0f,-0.015f,0.0f));
-            myShader.setMat("model", model);
-        }
-        if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS){
-            model = glm::translate(model, glm::vec3(0.0f,0.015f,0.0f));
-            myShader.setMat("model", model);
-        }
-        if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS){
-            model = glm::translate(model, glm::vec3(0.015f,0.0f,0.0f));
-            myShader.setMat("model", model);
-        }
-        if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS){
-            model = glm::translate(model, glm::vec3(-0.015f,0.0f,0.0f));
-            myShader.setMat("model", model);
-        }
-        if(glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS){
-            model = glm::mat4(1.0f);
-            myShader.setMat("model", model);
+        {//Inputs
+            if((glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) && !button_r_pressed){
+                reloadShader(window, &myShader);
+                myShader.use();
+                myShader.setBool("enable_contours", enable_contours);
+                myShader.setFloat("blend", blend);
+                myShader.setMat("model", model);
+                myShader.setMat("view", view);
+                button_r_pressed = true;
+            }
+            if(glfwGetKey(window,GLFW_KEY_R) == GLFW_RELEASE){
+                button_r_pressed = false;
+            }
+            //
+            if(glfwGetKey(window,GLFW_KEY_F) == GLFW_PRESS && !button_f_pressed){
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                button_f_pressed = true;
+            }
+            if(glfwGetKey(window,GLFW_KEY_F) == GLFW_RELEASE){
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                button_f_pressed = false;
+            }
+            //
+            if(glfwGetKey(window,GLFW_KEY_SPACE) == GLFW_PRESS && !button_space_pressed){
+                enable_contours = enable_contours ? false : true;
+                button_space_pressed = true;
+                myShader.setBool("enable_contours", enable_contours);
+            }
+            if(glfwGetKey(window,GLFW_KEY_SPACE) == GLFW_RELEASE){
+                button_space_pressed = false;
+            }
+            //
+            if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS){
+                blend += 0.005;
+                myShader.setFloat("blend", blend);
+            }
+            if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS){
+                blend -= 0.005;
+                myShader.setFloat("blend", blend);
+            }
+            //
+            if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
+                view = glm::scale(view, glm::vec3(1.025f, 1.025f, 0.0f));
+                myShader.setMat("view", view);
+            }
+            if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
+                view = glm::scale(view, glm::vec3(0.975f, 0.975f, 0.0f));
+                myShader.setMat("view", view);
+            }
+            if(glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS){
+                view = glm::mat4(1.0f);
+                myShader.setMat("view", view);
+            }
+
+            if(mouse_scroll_y_offset != 0){
+                view = glm::scale(view, glm::vec3(1.0f + mouse_scroll_y_offset, 1.0f + mouse_scroll_y_offset, 0.0f));
+                myShader.setMat("view", view);
+                mouse_scroll_y_offset = 0;
+            }
+
+            //
+            if(glfwGetKey(window, GLFW_KEY_CAPS_LOCK) == GLFW_PRESS){
+                blend = 1;
+                myShader.setFloat("blend", blend);
+            } 
+            //
+            if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS){
+                model = glm::translate(model, glm::vec3(0.0f,-0.015f,0.0f));
+                myShader.setMat("model", model);
+            }
+            if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS){
+                model = glm::translate(model, glm::vec3(0.0f,0.015f,0.0f));
+                myShader.setMat("model", model);
+            }
+            if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS){
+                model = glm::translate(model, glm::vec3(0.015f,0.0f,0.0f));
+                myShader.setMat("model", model);
+            }
+            if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS){
+                model = glm::translate(model, glm::vec3(-0.015f,0.0f,0.0f));
+                myShader.setMat("model", model);
+            }
+            if(glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS){
+                model = glm::mat4(1.0f);
+                myShader.setMat("model", model);
+            }
         }
 
         //rendering commands
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        
-        
+                
         myShader.use();        
         glBindVertexArray(VAO);
 
