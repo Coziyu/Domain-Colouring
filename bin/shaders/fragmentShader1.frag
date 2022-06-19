@@ -3,6 +3,22 @@ out vec4 FragColour;
 
 in vec3 out_vecCol;
 
+uniform bool enable_contours;
+
+//Declaration
+float c_argument(vec2 z);
+float c_modulus(vec2 z);
+vec2 c_mul(vec2 z1, vec2 z2);
+vec2 c_div(vec2 z1, vec2 z2);
+vec2 c_pow(vec2 z, int k);
+vec2 c_pow(float x, vec2 z);
+vec2 c_sin(vec2 z);
+vec2 c_cos(vec2 z);
+vec2 c_tan(vec2 z);
+vec2 c_exp(vec2 z);
+vec2 c_log(vec2 z);        
+
+
 //Math Functions
 #define M_PI 3.1415926535897932384626433832795
 float c_argument(vec2 z){//Complex argument
@@ -47,7 +63,9 @@ vec2 c_pow(vec2 z, int k)
     }
     return res;
 }
-
+vec2 c_pow(float x, vec2 z){
+    return c_exp(log(x) * z);
+}
 vec2 c_sin(vec2 z)
 {
     return vec2(sin(z.x) * cosh(z.y), cos(z.x) * sinh(z.y));
@@ -128,25 +146,25 @@ float hue(vec2 z){
 }
 
 //
-vec4 colour_point(vec2 z){
+vec4 colour_point(vec2 z, bool enable_contour){
 
     float r = c_modulus(z);
     float phi = c_argument(z);
     if(phi < 0){
         phi += 2 * M_PI;
     }
-    float b = fract(log2(c_modulus(z)));
+    float b = 0.5 + fract(log2(c_modulus(z)));
 
 
     float h = phi;
     float s = 1.0f;
-    float l = (2 / M_PI) * atan(b);
+    float l = enable_contour ? (2 / M_PI) * atan(b) : lightness(z); //Modulus Contour
 
     return vec4(hsl_to_rgb(h, s, l), 1.0f);
 }
 void main(){
     vec2 z = out_vecCol.xy;
-    z = c_pow((z - 0.5f), 3) - 1;
+    z = c_mul(c_pow(0.1,z), z);
 
-    FragColour = colour_point(z);
+    FragColour = colour_point(z, enable_contours);
 }

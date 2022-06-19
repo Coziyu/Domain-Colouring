@@ -44,7 +44,7 @@ std::vector<unsigned int> generate_grid_indices(unsigned int size){
 int main(){
 
     std::vector<Point> grid;
-    int span = 1111; //* NEEDS TO BE ODD
+    int span = 111; //* NEEDS TO BE ODD
     if((span + 1) % 2){
         std::cout << "WARNING: span NEEDS TO BE ODD." << std::endl;
     }
@@ -102,19 +102,25 @@ int main(){
 
     myShader.use();
 
+    bool enable_contours = false;
+    myShader.setBool("enable_contours", enable_contours);
+
     bool button_r_pressed = false; //For hot shader reloading
     bool button_f_pressed = false; //To toggle polygonmode
+    bool button_space_pressed = false;
     while(!glfwWindowShouldClose(window)){        
         // inputA
         processInput(window);
         if((glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) && !button_r_pressed){
             reloadShader(window, &myShader);
             myShader.use();
+            myShader.setBool("enable_contours", enable_contours);
             button_r_pressed = true;
         }
         if(glfwGetKey(window,GLFW_KEY_R) == GLFW_RELEASE){
             button_r_pressed = false;
         }
+        
         if(glfwGetKey(window,GLFW_KEY_F) == GLFW_PRESS && !button_f_pressed){
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             button_f_pressed = true;
@@ -123,6 +129,16 @@ int main(){
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             button_f_pressed = false;
         }
+
+        if(glfwGetKey(window,GLFW_KEY_SPACE) == GLFW_PRESS && !button_space_pressed){
+            enable_contours = enable_contours ? false : true;
+            button_space_pressed = true;
+            myShader.setBool("enable_contours", enable_contours);
+        }
+        if(glfwGetKey(window,GLFW_KEY_SPACE) == GLFW_RELEASE){
+            button_space_pressed = false;
+        }
+        
         //rendering commands
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
