@@ -99,9 +99,7 @@ vec2 c_log(vec2 z)
 //HSL to RGB Conversion Functions
 //Ref: https://www.baeldung.com/cs/convert-color-hsl-rgb
 vec3 hsl_to_rgb(float h, float s, float l){
-
     
-
     h = degrees(h);//h is passed in as radians
     float c = (1.0f - abs(2 * l - 1.0f)) * s; //Chroma
     float x = c * (1.0f - abs(mod((h / 60), 2) - 1.0f));
@@ -133,7 +131,8 @@ vec3 hsl_to_rgb(float h, float s, float l){
 
     vec3 rgb = vec3((temp.x + m), (temp.y + m), (temp.z + m));
 
-    return temp;
+    //return temp;
+    return rgb;
 }
 
 //HSL Colour Functions
@@ -146,7 +145,6 @@ float hue(vec2 z){
     return (c_argument(z) + 2 * M_PI / 3);
 }
 
-//
 vec4 colour_point(vec2 z, bool enable_contour){
 
     float r = c_modulus(z);
@@ -154,20 +152,16 @@ vec4 colour_point(vec2 z, bool enable_contour){
     if(phi < 0){
         phi += 2 * M_PI;
     }
-    //float b = 0.5 + fract(blend * log2(r));
-    float b = fract(blend * log2(r)) > 0.5 ? fract(blend * log2(r)) : fract(blend * log2(r)) + 0.5;
-
-
+    float contour_shading = fract(blend * log2(r)) > 0.5 ? fract(blend * log2(r)) : fract(blend * log2(r)) + 0.5;
     float h = phi;
     float s = 1.0f;
-    //float l = enable_contour ? (2 / M_PI) * atan(b) : 0.5f; //Modulus Contour
-    float l = enable_contour ? (2 / M_PI) * atan(b) : 0.5f; //Modulus Contour
+    float l = enable_contour ? (2 / M_PI) * atan(contour_shading) : 0.5f; //Modulus Contour
 
     return vec4(hsl_to_rgb(h, s, l), 1.0f);
 }
 void main(){
     vec2 z = out_vecCol.xy;
     //z = c_mul(c_pow(0.1,2 * z),2 * z);
-    z = c_pow(z,3) - vec2(1,0);
+    z = c_pow(z*2, 3) - vec2(1,0);
     FragColour = colour_point(z, enable_contours);
 }

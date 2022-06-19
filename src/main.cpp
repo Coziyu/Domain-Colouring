@@ -18,6 +18,7 @@
 unsigned const int WIN_WIDTH = 800;
 unsigned const int WIN_HEIGHT = 800; 
 
+//* FRAGMENT INTERPOLATION ACTUALLY PASSES INTERPOLATED COORDINATED INTO THE FRAGMENT SHADER!!!!!!!
 //TODO Find a way to render an area bigger than the viewport. I want to be able to specfiy the render area and resolution
 
 struct Point {
@@ -44,14 +45,17 @@ std::vector<unsigned int> generate_grid_indices(unsigned int size){ //Generate i
 int main(){
 
     std::vector<Point> grid;
-    int span = 3; //* NEEDS TO BE ODD
+    int span = 11; //* NEEDS TO BE ODD
+    float density = 1.0f;
     if((span + 1) % 2){
         std::cout << "WARNING: span NEEDS TO BE ODD." << std::endl;
     }
     for(int y = -(span - 1)/2; y <= (span - 1)/2; y++){
         for(int x = -(span - 1)/2; x <= (span - 1)/2; x++){
-            float norm_x = (float)x / ((float)(span - 1.0f)/2.0f); 
-            float norm_y = (float)y / ((float)(span - 1.0f)/2.0f);
+            // float norm_x = (float)x / ((float)(span - 1.0f)/2.0f); 
+            // float norm_y = (float)y / ((float)(span - 1.0f)/2.0f);
+            float norm_x = (float)x / density; 
+            float norm_y = (float)y / density;
             grid.push_back(Point(norm_x, norm_y));
         }
     }
@@ -144,11 +148,11 @@ int main(){
         }
 
         if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
-            blend += 0.05;
+            blend += 0.005;
             myShader.setFloat("blend", blend);
         }
         if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
-            blend -= 0.05;
+            blend -= 0.005;
             myShader.setFloat("blend", blend);
         }
 
