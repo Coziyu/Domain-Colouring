@@ -164,16 +164,16 @@ int main(){
         }
         //
         if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
-            model = glm::scale(model, glm::vec3(1.025f, 1.025f, 0.0f));
-            myShader.setMat("model", model);
+            view = glm::scale(view, glm::vec3(1.025f, 1.025f, 0.0f));
+            myShader.setMat("view", view);
         }
         if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
-            model = glm::scale(model, glm::vec3(0.975f, 0.975f, 0.0f));
-            myShader.setMat("model", model);
+            view = glm::scale(view, glm::vec3(0.975f, 0.975f, 0.0f));
+            myShader.setMat("view", view);
         }
         if(glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS){
-            model = glm::mat4(1.0f);
-            myShader.setMat("model", model);
+            view = glm::mat4(1.0f);
+            myShader.setMat("view", view);
         }
         //
         if(glfwGetKey(window, GLFW_KEY_CAPS_LOCK) == GLFW_PRESS){
@@ -182,24 +182,24 @@ int main(){
         } 
         //
         if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS){
-            view = glm::translate(view, glm::vec3(0.0f,-0.05f,0.0f));
-            myShader.setMat("view", view);
+            model = glm::translate(model, glm::vec3(0.0f,-0.015f,0.0f));
+            myShader.setMat("model", model);
         }
         if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS){
-            view = glm::translate(view, glm::vec3(0.0f,0.05f,0.0f));
-            myShader.setMat("view", view);
+            model = glm::translate(model, glm::vec3(0.0f,0.015f,0.0f));
+            myShader.setMat("model", model);
         }
         if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS){
-            view = glm::translate(view, glm::vec3(0.05f,0.0f,0.0f));
-            myShader.setMat("view", view);
+            model = glm::translate(model, glm::vec3(0.015f,0.0f,0.0f));
+            myShader.setMat("model", model);
         }
         if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS){
-            view = glm::translate(view, glm::vec3(-0.05f,0.0f,0.0f));
-            myShader.setMat("view", view);
+            model = glm::translate(model, glm::vec3(-0.015f,0.0f,0.0f));
+            myShader.setMat("model", model);
         }
         if(glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS){
-            view = glm::mat4(1.0f);
-            myShader.setMat("view", view);
+            model = glm::mat4(1.0f);
+            myShader.setMat("model", model);
         }
 
         //rendering commands
