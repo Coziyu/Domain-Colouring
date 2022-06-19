@@ -159,9 +159,14 @@ vec4 colour_point(vec2 z, bool enable_contour){
 
     return vec4(hsl_to_rgb(h, s, l), 1.0f);
 }
+
+vec2 f(vec2 z){ //Edit this
+    return c_pow(z*2, 3) - vec2(1,0);
+}
+
 void main(){
-    vec2 z = out_vecCol.xy;
+    vec2 z = f(out_vecCol.xy);
     //z = c_mul(c_pow(0.1,2 * z),2 * z);
-    z = c_pow(z*2, 3) - vec2(1,0);
+    //z = c_pow(z*2, 3) - vec2(1,0);
     FragColour = colour_point(z, enable_contours);
 }

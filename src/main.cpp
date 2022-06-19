@@ -45,7 +45,7 @@ std::vector<unsigned int> generate_grid_indices(unsigned int size){ //Generate i
 int main(){
 
     std::vector<Point> grid;
-    int span = 11; //* NEEDS TO BE ODD
+    int span = 33; //* NEEDS TO BE ODD
     float density = 1.0f;
     if((span + 1) % 2){
         std::cout << "WARNING: span NEEDS TO BE ODD." << std::endl;
@@ -106,11 +106,16 @@ int main(){
 
     myShader.use();
 
+    glm::mat4 model(1.0f);
+    glm::mat4 view(1.0f);
+
+
     bool enable_contours = false;
     float blend = 1;
     myShader.setBool("enable_contours", enable_contours);
     myShader.setFloat("blend", blend);
-
+    myShader.setMat("model", model);
+    myShader.setMat("view", view);
 
     bool button_r_pressed = false; //For hot shader reloading
     bool button_f_pressed = false; //To toggle polygonmode
@@ -123,12 +128,14 @@ int main(){
             myShader.use();
             myShader.setBool("enable_contours", enable_contours);
             myShader.setFloat("blend", blend);
+            myShader.setMat("model", model);
+            myShader.setMat("view", view);
             button_r_pressed = true;
         }
         if(glfwGetKey(window,GLFW_KEY_R) == GLFW_RELEASE){
             button_r_pressed = false;
         }
-        
+        //
         if(glfwGetKey(window,GLFW_KEY_F) == GLFW_PRESS && !button_f_pressed){
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             button_f_pressed = true;
@@ -137,7 +144,7 @@ int main(){
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             button_f_pressed = false;
         }
-
+        //
         if(glfwGetKey(window,GLFW_KEY_SPACE) == GLFW_PRESS && !button_space_pressed){
             enable_contours = enable_contours ? false : true;
             button_space_pressed = true;
@@ -146,21 +153,55 @@ int main(){
         if(glfwGetKey(window,GLFW_KEY_SPACE) == GLFW_RELEASE){
             button_space_pressed = false;
         }
-
-        if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
+        //
+        if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS){
             blend += 0.005;
             myShader.setFloat("blend", blend);
         }
-        if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
+        if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS){
             blend -= 0.005;
             myShader.setFloat("blend", blend);
         }
-
-        if (glfwGetKey(window, GLFW_KEY_CAPS_LOCK) == GLFW_PRESS){
+        //
+        if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
+            model = glm::scale(model, glm::vec3(1.025f, 1.025f, 0.0f));
+            myShader.setMat("model", model);
+        }
+        if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
+            model = glm::scale(model, glm::vec3(0.975f, 0.975f, 0.0f));
+            myShader.setMat("model", model);
+        }
+        if(glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS){
+            model = glm::mat4(1.0f);
+            myShader.setMat("model", model);
+        }
+        //
+        if(glfwGetKey(window, GLFW_KEY_CAPS_LOCK) == GLFW_PRESS){
             blend = 1;
             myShader.setFloat("blend", blend);
-        }   
-        
+        } 
+        //
+        if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS){
+            view = glm::translate(view, glm::vec3(0.0f,-0.05f,0.0f));
+            myShader.setMat("view", view);
+        }
+        if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS){
+            view = glm::translate(view, glm::vec3(0.0f,0.05f,0.0f));
+            myShader.setMat("view", view);
+        }
+        if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS){
+            view = glm::translate(view, glm::vec3(0.05f,0.0f,0.0f));
+            myShader.setMat("view", view);
+        }
+        if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS){
+            view = glm::translate(view, glm::vec3(-0.05f,0.0f,0.0f));
+            myShader.setMat("view", view);
+        }
+        if(glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS){
+            view = glm::mat4(1.0f);
+            myShader.setMat("view", view);
+        }
+
         //rendering commands
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
