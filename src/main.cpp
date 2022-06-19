@@ -26,7 +26,7 @@ struct Point {
   Point(float x, float y) : m_x{x}, m_y{y}{}
 };
 
-std::vector<unsigned int> generate_grid_indices(unsigned int size){
+std::vector<unsigned int> generate_grid_indices(unsigned int size){ //Generate indices for triangulation
     std::vector<unsigned int> r;
     for(unsigned int i = 0; i <= size - 2; i++){
         for(unsigned int j = 1; j <= size - 1; j++){
