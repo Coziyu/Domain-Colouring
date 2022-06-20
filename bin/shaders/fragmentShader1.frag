@@ -3,7 +3,7 @@ out vec4 FragColour;
 
 in vec3 out_vecCol;
 
-uniform bool enable_contours;
+uniform int setContourMode;
 uniform float blend;
 
 //Declaration
@@ -67,6 +67,13 @@ vec2 c_pow(vec2 z, int k)
 vec2 c_pow(float x, vec2 z){
     return c_exp(log(x) * z);
 }
+
+vec2 c_pow(vec2 z1, vec2 z2){
+    float r = c_modulus(z1);
+    float theta = c_argument(z1);
+    return c_exp((log(r) * (z2)) + c_mul(theta * vec2(0,1), z2));
+}
+
 vec2 c_sin(vec2 z)
 {
     return vec2(sin(z.x) * cosh(z.y), cos(z.x) * sinh(z.y));
@@ -145,7 +152,7 @@ float hue(vec2 z){
     return (c_argument(z) + 2 * M_PI / 3);
 }
 
-vec4 colour_point(vec2 z, bool enable_contour){
+vec4 colour_point(vec2 z, int setContourMode){
 
     float r = c_modulus(z);
     float phi = c_argument(z);
@@ -154,26 +161,37 @@ vec4 colour_point(vec2 z, bool enable_contour){
     }
     float modulus_temp = fract(blend * log2(r));
     float contour_shading_modulus = modulus_temp > 0.5 ? modulus_temp : modulus_temp + 0.5;
-    float phase_temp = fract((2 * blend * phi/M_PI)) + 0.5;
+    float phase_temp = fract((2 * (blend + 3) * phi/M_PI)) + 0.5;
     float contour_shading_phase = phase_temp;
 
     float h = phi;
     float s = 1.0f;
-    float l = enable_contour ? (2 / M_PI) * atan(contour_shading_modulus) : 0.5f; //Modulus Contour
-    //float l = enable_contour ? (2 / M_PI) * atan(contour_shading_phase) : 0.5f; //Phase Contour
-
+    float l = 0.5f;
+    switch (setContourMode){
+        case 0:
+            l = 0.5f;
+            break;
+        case 1:
+            l = (2 / M_PI) * atan(contour_shading_modulus); //Modulus Contour
+            break;
+        case 2:
+            l = (2 / M_PI) * atan(contour_shading_phase); //Phase Contour
+            break;
+    }
     return vec4(hsl_to_rgb(h, s, l), 1.0f);
 }
 
 vec2 f(vec2 z){ //Edit this
-    return c_mul((z - vec2(1.0f, 0.0f)), (z - vec2(0.0f,1.0f)));
+    //return c_mul((z - vec2(1.0f, 0.0f)), (z - vec2(0.0f,1.0f)));
     //return z;
     //return (c_pow(z,5) - c_pow(z,3));
+    //return (c_pow(z,3) - vec2(0.5,-0.5));
+    return c_pow(z, z);
 }
 
 void main(){
     vec2 z = f(out_vecCol.xy);
     //z = c_mul(c_pow(0.1,2 * z),2 * z);
     //z = c_pow(z*2, 3) - vec2(1,0);
-    FragColour = colour_point(z, enable_contours);
+    FragColour = colour_point(z, setContourMode);
 }
