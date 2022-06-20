@@ -23,11 +23,11 @@ unsigned const int WIN_HEIGHT = 800;
 //TODO: Implement equation parser into fragment shader?
 //TODO: Implement phase contours
 //TODO: Implement zoom aware WASD translation
-
+//TODO: Add toggle between phase and modulus contours
 struct Point {
-  float m_x;
-  float m_y;
-  Point(float x, float y) : m_x{x}, m_y{y}{}
+    float m_x;
+    float m_y;
+    Point(float x, float y) : m_x{x}, m_y{y}{}
 };
 
 std::vector<unsigned int> generate_grid_indices(unsigned int size){ //Generate indices for triangulation
@@ -124,6 +124,7 @@ int main(){
 
     bool button_r_pressed = false; //For hot shader reloading
     bool button_f_pressed = false; //To toggle polygonmode
+    bool button_horizontal_pressed = false; //Change blend
     bool button_space_pressed = false;
     while(!glfwWindowShouldClose(window)){        
         // inputA
@@ -160,14 +161,23 @@ int main(){
                 button_space_pressed = false;
             }
             //
-            if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS){
-                blend += 0.005;
+            if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS && !button_horizontal_pressed){
+                blend += 1.00f;
                 myShader.setFloat("blend", blend);
+                button_horizontal_pressed = true;
             }
-            if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS){
-                blend -= 0.005;
+            if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS && !button_horizontal_pressed){
+                blend -= 1.00f;
                 myShader.setFloat("blend", blend);
+                button_horizontal_pressed = true;
             }
+            if((glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_RELEASE) && (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_RELEASE)){
+                button_horizontal_pressed = false;
+            }
+            if(glfwGetKey(window, GLFW_KEY_CAPS_LOCK) == GLFW_PRESS){
+                blend = 1;
+                myShader.setFloat("blend", blend);
+            } 
             //
             if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
                 view = glm::scale(view, glm::vec3(1.025f, 1.025f, 0.0f));
@@ -187,12 +197,6 @@ int main(){
                 myShader.setMat("view", view);
                 mouse_scroll_y_offset = 0;
             }
-
-            //
-            if(glfwGetKey(window, GLFW_KEY_CAPS_LOCK) == GLFW_PRESS){
-                blend = 1;
-                myShader.setFloat("blend", blend);
-            } 
             //
             if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS){
                 model = glm::translate(model, glm::vec3(0.0f,-0.015f,0.0f));
