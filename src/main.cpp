@@ -21,9 +21,8 @@ unsigned const int WIN_HEIGHT = 800;
 //* FRAGMENT INTERPOLATION ACTUALLY PASSES INTERPOLATED COORDINATED INTO THE FRAGMENT SHADER!!!!!!!
 //TODO: Implement mouse drag translation
 //TODO: Implement equation parser into fragment shader?
-//TODO: Implement phase contours
 //TODO: Implement zoom aware WASD translation
-//TODO: Add toggle between phase and modulus contours
+//TODO: Add contourmode: both phase and modulus
 struct Point {
     float m_x;
     float m_y;
@@ -44,6 +43,12 @@ std::vector<unsigned int> generate_grid_indices(unsigned int size){ //Generate i
     }
     return r;
 }
+
+enum contourMode{
+    disable = 0,
+    modulus = 1,
+    phase = 2
+};
 
 int main(){
 
@@ -115,9 +120,9 @@ int main(){
     glm::mat4 view(1.0f);
 
 
-    bool enable_contours = false;
+    int setContourMode = contourMode::disable;
     float blend = 1;
-    myShader.setBool("enable_contours", enable_contours);
+    myShader.setInt("setContourMode", setContourMode);
     myShader.setFloat("blend", blend);
     myShader.setMat("model", model);
     myShader.setMat("view", view);
@@ -133,7 +138,7 @@ int main(){
             if((glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) && !button_r_pressed){
                 reloadShader(window, &myShader);
                 myShader.use();
-                myShader.setBool("enable_contours", enable_contours);
+                myShader.setInt("setContourMode", setContourMode);
                 myShader.setFloat("blend", blend);
                 myShader.setMat("model", model);
                 myShader.setMat("view", view);
@@ -153,9 +158,19 @@ int main(){
             }
             //
             if(glfwGetKey(window,GLFW_KEY_SPACE) == GLFW_PRESS && !button_space_pressed){
-                enable_contours = enable_contours ? false : true;
+                switch (setContourMode){
+                    case contourMode::disable:
+                        setContourMode = contourMode::modulus;
+                        break;
+                    case contourMode::modulus:
+                        setContourMode = contourMode::phase;
+                        break;
+                    case contourMode::phase:
+                        setContourMode = contourMode::disable;
+                        break;
+                }
                 button_space_pressed = true;
-                myShader.setBool("enable_contours", enable_contours);
+                myShader.setInt("setContourMode", setContourMode);
             }
             if(glfwGetKey(window,GLFW_KEY_SPACE) == GLFW_RELEASE){
                 button_space_pressed = false;
