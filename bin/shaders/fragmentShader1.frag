@@ -13,6 +13,7 @@ vec2 c_mul(vec2 z1, vec2 z2);
 vec2 c_div(vec2 z1, vec2 z2);
 vec2 c_pow(vec2 z, int k);
 vec2 c_pow(float x, vec2 z);
+vec2 c_pow(vec2 z1, vec2 z2);
 vec2 c_sin(vec2 z);
 vec2 c_cos(vec2 z);
 vec2 c_tan(vec2 z);
@@ -102,6 +103,13 @@ vec2 c_log(vec2 z)
     return vec2(log(c_modulus(z)), c_argument(z));
 }            
 
+vec2 c_zeta(vec2 z, int terms){//TODO: Implement the portion that is defined by analytic continuation
+    vec2 temp = vec2(0.0, 0.0);
+    for(int i = 1; i <= terms; i++){
+        temp += c_div(vec2(1.0,0.0),c_pow(vec2(i,0), z));
+    }
+    return temp;
+}
 
 //HSL to RGB Conversion Functions
 //Ref: https://www.baeldung.com/cs/convert-color-hsl-rgb
@@ -187,7 +195,8 @@ vec2 f(vec2 z){ //Edit this
     //return (c_pow(z,5) - c_pow(z,3));
     //return (c_pow(z,3) - vec2(0.5,-0.5));
     //return c_pow(c_log(z), z);
-    return c_pow(z - vec2(1.0, 0),c_log(z - vec2(0, -1.0)));
+    //return c_pow(z - vec2(1.0, 0),c_log(z - vec2(0, -1.0)));
+    return c_zeta(z, 100);
 }
 
 void main(){

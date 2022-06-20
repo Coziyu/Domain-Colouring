@@ -21,6 +21,7 @@ unsigned const int WIN_HEIGHT = 800;
 //* FRAGMENT INTERPOLATION ACTUALLY PASSES INTERPOLATED COORDINATED INTO THE FRAGMENT SHADER!!!!!!!
 //TODO: Implement equation parser into fragment shader?
 //TODO: Add contourmode: both phase and modulus
+//TODO: Implement the full Riemann Zeta function
 struct Point {
     float m_x;
     float m_y;
@@ -52,7 +53,7 @@ int main(){
 
     std::vector<Point> grid;
     int span = 3; //* NEEDS TO BE ODD
-    float density = 0.1f;
+    float density = 0.05f;
     if((span + 1) % 2){
         std::cout << "WARNING: span NEEDS TO BE ODD." << std::endl;
     }
