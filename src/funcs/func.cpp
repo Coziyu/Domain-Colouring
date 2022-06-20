@@ -16,8 +16,7 @@ void reloadShader(GLFWwindow* window, Shader* shader){
 }
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset){
     mouse_scroll_y_offset = yoffset/10;
-    std::cout << mouse_scroll_y_offset << "\n";
-    std::cout << camera_zoom << "\n";
+    std::cout << 1/(camera_zoom * (1.0f + mouse_scroll_y_offset)) << "\n";
 }
 void mouse_button_callback(GLFWwindow *window, int button, int action, int mods){
     // if((button == GLFW_MOUSE_BUTTON_LEFT) && (action == GLFW_PRESS)){
