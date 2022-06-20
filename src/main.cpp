@@ -19,9 +19,7 @@ unsigned const int WIN_WIDTH = 800;
 unsigned const int WIN_HEIGHT = 800; 
 
 //* FRAGMENT INTERPOLATION ACTUALLY PASSES INTERPOLATED COORDINATED INTO THE FRAGMENT SHADER!!!!!!!
-//TODO: Implement mouse drag translation
 //TODO: Implement equation parser into fragment shader?
-//TODO: Implement zoom aware WASD translation
 //TODO: Add contourmode: both phase and modulus
 struct Point {
     float m_x;
@@ -89,6 +87,7 @@ int main(){
         return -1;
     }
     glfwSetScrollCallback(window, scroll_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
 
     
     Shader myShader("./shaders/vertexShader1.vert","./shaders/fragmentShader1.frag");
@@ -116,10 +115,6 @@ int main(){
 
     myShader.use();
 
-    glm::mat4 model(1.0f);
-    glm::mat4 view(1.0f);
-
-
     int setContourMode = contourMode::disable;
     float blend = 1;
     myShader.setInt("setContourMode", setContourMode);
@@ -132,9 +127,9 @@ int main(){
     bool button_horizontal_pressed = false; //Change blend
     bool button_space_pressed = false;
     while(!glfwWindowShouldClose(window)){        
-        // inputA
+        // input
         processInput(window);
-        {//Inputs
+        {   //SHADER RELOAD
             if((glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) && !button_r_pressed){
                 reloadShader(window, &myShader);
                 myShader.use();
@@ -147,7 +142,7 @@ int main(){
             if(glfwGetKey(window,GLFW_KEY_R) == GLFW_RELEASE){
                 button_r_pressed = false;
             }
-            //
+            //TODO: REMOVE THIS POLYGON MODE TOGGLE
             if(glfwGetKey(window,GLFW_KEY_F) == GLFW_PRESS && !button_f_pressed){
                 glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
                 button_f_pressed = true;
@@ -156,7 +151,7 @@ int main(){
                 glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
                 button_f_pressed = false;
             }
-            //
+            //TOGGLE CONTOUR
             if(glfwGetKey(window,GLFW_KEY_SPACE) == GLFW_PRESS && !button_space_pressed){
                 switch (setContourMode){
                     case contourMode::disable:
@@ -175,7 +170,7 @@ int main(){
             if(glfwGetKey(window,GLFW_KEY_SPACE) == GLFW_RELEASE){
                 button_space_pressed = false;
             }
-            //
+            //CONTOUR DENISTY
             if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS && !button_horizontal_pressed){
                 blend += 1.00f;
                 myShader.setFloat("blend", blend);
@@ -193,46 +188,73 @@ int main(){
                 blend = 1;
                 myShader.setFloat("blend", blend);
             } 
-            //
+            //CAMERA ZOOM
             if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
                 view = glm::scale(view, glm::vec3(1.025f, 1.025f, 0.0f));
+                camera_zoom *= 1.025;
                 myShader.setMat("view", view);
             }
             if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
-                view = glm::scale(view, glm::vec3(0.975f, 0.975f, 0.0f));
+                view = glm::scale(view, glm::vec3(1/1.025f, 1/1.025f, 0.0f));
+                camera_zoom *= 1/1.025f;
                 myShader.setMat("view", view);
             }
             if(glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS){
                 view = glm::mat4(1.0f);
+                camera_zoom = 1.0f;
                 myShader.setMat("view", view);
             }
 
             if(mouse_scroll_y_offset != 0){
                 view = glm::scale(view, glm::vec3(1.0f + mouse_scroll_y_offset, 1.0f + mouse_scroll_y_offset, 0.0f));
+                camera_zoom *= 1.0f + mouse_scroll_y_offset;
                 myShader.setMat("view", view);
                 mouse_scroll_y_offset = 0;
             }
-            //
+            //CAMERA MOVEMENT
             if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS){
-                model = glm::translate(model, glm::vec3(0.0f,-0.015f,0.0f));
+                model = glm::translate(model, glm::vec3(0.0f,-0.015f / camera_zoom,0.0f));
                 myShader.setMat("model", model);
             }
             if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS){
-                model = glm::translate(model, glm::vec3(0.0f,0.015f,0.0f));
+                model = glm::translate(model, glm::vec3(0.0f,0.015f / camera_zoom,0.0f));
                 myShader.setMat("model", model);
             }
             if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS){
-                model = glm::translate(model, glm::vec3(0.015f,0.0f,0.0f));
+                model = glm::translate(model, glm::vec3(0.015f / camera_zoom,0.0f,0.0f));
                 myShader.setMat("model", model);
             }
             if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS){
-                model = glm::translate(model, glm::vec3(-0.015f,0.0f,0.0f));
+                model = glm::translate(model, glm::vec3(-0.015f / camera_zoom,0.0f,0.0f));
                 myShader.setMat("model", model);
             }
             if(glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS){
                 model = glm::mat4(1.0f);
                 myShader.setMat("model", model);
             }
+        }
+
+        //Handle left mouse press down state's temporary model value;
+        if((glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)){
+            glfwGetCursorPos(window, &mouse_left_current_x_pos, &mouse_left_current_y_pos);
+            if(!mouse_left_pressed){
+                glfwGetCursorPos(window, &mouse_left_press_x_pos, &mouse_left_press_y_pos);
+            }
+            mouse_left_pressed = true;
+            //Temporarily move camera
+            double mouse_left_x_delta = -(mouse_left_press_x_pos - mouse_left_current_x_pos);
+            double mouse_left_y_delta = (mouse_left_press_y_pos - mouse_left_current_y_pos);
+            glm::mat4 temp_model = model;
+            temp_model = glm::translate(model,glm::vec3(2 * mouse_left_x_delta/(WIN_WIDTH * camera_zoom), 2 * mouse_left_y_delta/(WIN_HEIGHT * camera_zoom), 0.0f));
+            myShader.setMat("model", temp_model);
+        }
+        if((glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) && mouse_left_pressed){
+            mouse_left_pressed = false;
+            //Lock in release camera position
+            double mouse_left_x_delta = -(mouse_left_press_x_pos - mouse_left_current_x_pos);
+            double mouse_left_y_delta = (mouse_left_press_y_pos - mouse_left_current_y_pos);
+            model = glm::translate(model,glm::vec3(2 * mouse_left_x_delta/(WIN_WIDTH * camera_zoom), 2 * mouse_left_y_delta/(WIN_HEIGHT * camera_zoom), 0.0f));
+            myShader.setMat("model", model);
         }
 
         //rendering commands

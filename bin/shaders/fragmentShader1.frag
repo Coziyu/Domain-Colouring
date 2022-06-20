@@ -186,7 +186,8 @@ vec2 f(vec2 z){ //Edit this
     //return z;
     //return (c_pow(z,5) - c_pow(z,3));
     //return (c_pow(z,3) - vec2(0.5,-0.5));
-    return c_pow(z, z);
+    //return c_pow(c_log(z), z);
+    return c_pow(z - vec2(1.0, 0),c_log(z - vec2(0, -1.0)));
 }
 
 void main(){
