@@ -6,7 +6,7 @@ in vec3 out_vecCol;
 uniform int setContourMode;
 uniform float blend;
 
-//Declaration
+//* Declaration
 float c_argument(vec2 z);
 float c_modulus(vec2 z);
 vec2 c_mul(vec2 z1, vec2 z2);
@@ -19,10 +19,12 @@ vec2 c_cos(vec2 z);
 vec2 c_tan(vec2 z);
 vec2 c_exp(vec2 z);
 vec2 c_log(vec2 z);    
-vec2 c_zeta(vec2 z);
+vec2 c_eta(vec2 z, int terms);
+vec2 c_zeta(vec2 z, int terms);
 vec2 c_gamma(vec2 z);
 
-//Math Functions
+
+//* Math Functions
 #define M_PI 3.1415926535897932384626433832795
 float c_argument(vec2 z){//Complex argument
     return atan(z.y, z.x);
@@ -104,39 +106,41 @@ vec2 c_log(vec2 z)
     return vec2(log(c_modulus(z)), c_argument(z));
 }            
 
-//! Not to be called directly
-vec2 c_zeta_p(vec2 z, int terms){
-    if(z.x > 0){
-        //Dirichlet eta function
-        vec2 temp = vec2(0.0, 0.0);
-        for(int i = 1; i <= terms; i++){
-            temp += (i % 2) == 1 ? c_div(vec2(1.0,0.0),c_pow(vec2(i,0), z)) : -1 * c_div(vec2(1.0,0.0),c_pow(vec2(i,0), z));
-        }
-        //Zeta function for Re(z) > 0 by dividing eta fucntion
-        temp = c_div(temp, (vec2(1,0) - c_div(vec2(2.0,0.0),c_pow(vec2(2,0), z))));
-        return temp;
+vec2 c_eta(vec2 z, int terms){
+    vec2 temp = vec2(0.0, 0.0);
+    for(int i = 1; i <= terms; i++){
+        temp += (i % 2) == 1 ? c_div(vec2(1.0,0.0),c_pow(vec2(i,0), z)) : -1 * c_div(vec2(1.0,0.0),c_pow(vec2(i,0), z));
     }
-    return vec2(0,0);
+    return temp;
+}
+
+//! Not to be called directly
+vec2 c_zeta_p(vec2 z, int terms){  
+    //Dirichlet eta function
+    vec2 temp = c_eta(z, terms);
+    //Zeta function for Re(z) > 0 by dividing eta fucntion
+    //temp = c_div(temp, (vec2(1,0) - c_div(vec2(2.0,0.0),c_pow(vec2(2,0), z))));
+    return c_div(temp, (vec2(1,0) - c_pow(vec2(2,0), vec2(1,0) - z)));
 }
 //! Not to be called directly
 vec2 c_zeta_n(vec2 z, int terms){
     vec2 temp = c_zeta_p(vec2(1,0) - z, terms);
-    //* Below is why we need operator overloading in glsl. Could have easily been:
-    //* 2^s * M_PI^(s-1) * c_sin(M_PI/2 * s) * c_gamma(1 - s) * c_zeta_p(1-s, terms);
-    return c_mul(c_mul(c_mul(c_mul(c_pow(vec2(2,0), z), c_pow(vec2(M_PI, 0), z - vec2(1,0))), c_sin(M_PI / 2 * z)), c_gamma(vec2(1,0) - z)), c_zeta_p(vec2(1,0) - z, terms));
+    // Below is why we need operator overloading in glsl. Could have easily been:
+    // 2^s * M_PI^(s-1) * c_sin(M_PI/2 * s) * c_gamma(1 - s) * c_zeta_p(h-s, terms);
+    return c_mul(c_mul(c_mul(c_mul(c_pow(vec2(2,0), z), c_pow(vec2(M_PI, 0), z - vec2(1,0))), c_sin((M_PI / 2) * z)), c_gamma(vec2(1,0) - z)), c_zeta_p(vec2(1,0) - z, terms));
 }
-
-
+//? WHY DOESNT THIS WORK?
 vec2 c_zeta(vec2 z, int terms){
     if(z.x > 0) 
         return c_zeta_p(z, terms);
     else return c_zeta_n(z, terms);
 }
-/*
+
+/**************************************************
 IMPLEMENTATION BASED ON PYTHON EXAMPLE IN:
 https://en.wikipedia.org/wiki/Lanczos_approximation
 FROST WAS HERE
-*/
+***************************************************/
 vec2 c_gamma(vec2 z){//Using Lanczos approximation
 
     float p[8] = float[](
@@ -179,7 +183,7 @@ vec2 c_gamma(vec2 z){//Using Lanczos approximation
     return y;
 }
 
-//HSL to RGB Conversion Functions
+//*HSL to RGB Conversion Functions
 //Ref: https://www.baeldung.com/cs/convert-color-hsl-rgb
 vec3 hsl_to_rgb(float h, float s, float l){
     
