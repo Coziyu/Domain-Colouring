@@ -4,3 +4,8 @@ CMakeLists_stop.txt
 build/.cmake/**
 build/CMakeFiles/**
 bin/rendering.exe
+build/compile_commands.json
+build/**
+build/
+.vscode/**
+vscode/

@@ -1,13 +1,15 @@
 #version 330 core
-layout (location = 0) in vec3 vecPos;
+layout (location = 0) in vec2 coord2d;
 layout (location = 1) in vec3 vecCol;
-layout (location = 2) in vec2 vecTexCoord;
 
-out vec3 interpolated_ourColour;
-out vec2 texCoord;
+out vec3 out_vecCol;
+
+uniform mat4 view;
+uniform mat4 model;
+
+
 
 void main(){
-    interpolated_ourColour = vecCol;
-    texCoord = vec2(vecTexCoord.x,vecTexCoord.y);
-    gl_Position = vec4(vecPos, 1.0);
+    out_vecCol = vec3(coord2d, 0.0f);
+    gl_Position = view * model * vec4(coord2d.x, coord2d.y, 0.0f, 1.0f);
 }

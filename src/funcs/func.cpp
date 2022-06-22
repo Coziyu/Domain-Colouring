@@ -1,49 +1,39 @@
 #include <glad\glad.h>
 #include <GLFW\glfw3.h>
 #include "headers/data.h"
+#include "headers/shader.h"
+#include "headers/func.h"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height){
+    win_width = width;
+    win_height = height;
     glViewport(0, 0, width, height);
 }
 void processInput(GLFWwindow *window){
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS){
         glfwSetWindowShouldClose(window, true);
     }
-    if (glfwGetKey(window, GLFW_KEY_CAPS_LOCK) == GLFW_PRESS){
-        float def_vertices[12] = {
-            0.5f,  0.5f,  0.0f,
-            0.5f, -0.5f,  0.0f,
-            -0.5f, -0.5f,  0.0f,
-            -0.5f,  0.5f,  0.0f
-        };
-        for(int i = 0; i < 9; ++i){
-            vertices[i] = def_vertices[i];
-        }
-    }
-    if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS){
-        vertices[1] += 0.01;
-        vertices[4] += 0.01;
-        vertices[7] += 0.01;
-    }
-    if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS){
-        vertices[1] -= 0.01;
-        vertices[4] -= 0.01;
-        vertices[7] -= 0.01;
-    }
-    if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS){
-        vertices[0] += 0.01;
-        vertices[3] += 0.01;
-        vertices[6] += 0.01;
-    }
-    if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS){
-        vertices[0] -= 0.01;
-        vertices[3] -= 0.01;
-        vertices[6] -= 0.01;
-    }
-    if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
-        blend += 0.05; 
-    }
-    if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
-        blend -= 0.05; 
-    }
+}
+void reloadShader(GLFWwindow* window, Shader* shader){
+    shader->reload();
+}
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset){
+    mouse_scroll_y_offset = yoffset/10;
+    std::cout << (camera_zoom * (1.0f + mouse_scroll_y_offset)) << "\n";
+}
+void mouse_button_callback(GLFWwindow *window, int button, int action, int mods){
+    // if((button == GLFW_MOUSE_BUTTON_LEFT) && (action == GLFW_PRESS)){
+    //     glfwGetCursorPos(window, &mouse_left_current_x_pos, &mouse_left_current_y_pos);
+    //     if(!mouse_left_pressed){
+    //         glfwGetCursorPos(window, &mouse_left_press_x_pos, &mouse_left_press_y_pos);
+    //     }
+    //     std::cout << "left click detected" << "\n";
+    //     std::cout << mouse_left_current_x_pos <<" "<< mouse_left_current_y_pos << "\n";
+
+    //     mouse_left_pressed = true;
+    // }
+    // if((button == GLFW_MOUSE_BUTTON_LEFT) && (action == GLFW_RELEASE) && mouse_left_pressed){
+    //     std::cout << "left click release" << "\n";
+    //     mouse_left_pressed = false;
+    // }
 }

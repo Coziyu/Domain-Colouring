@@ -1,33 +1,27 @@
-float vertices[] = {
+#include <vector>
+#include "glm/glm.hpp"
+#include "headers/data.h"
+
+std::vector<float> vertices = {
    0.5f,  0.5f,  0.0f,
    0.5f, -0.5f,  0.0f,
   -0.5f, -0.5f,  0.0f,
   -0.5f,  0.5f,  0.0f
 };
-/*float vertices[] = {
-        // positions          // colors           // texture coords
-         0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // top right
-         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
-        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // top left 
-};*/
-unsigned int indices[] = {
-    0, 1, 3,   // first triangle
-    1, 2, 3
-};
-float colours[] = {
-  1.0f, 0.0f, 0.0f,
-  0.0f, 1.0f, 0.0f,
-  0.0f, 0.0f, 1.0f,
-  1.0f, 1.0f, 0.0f
-};
-float texCoords[] = {
-  1.0f, 1.0f,
-  1.0f, 0.0f,
-  0.0f, 0.0f,
-  0.0f, 1.0f
-};
 
+glm::mat4 model(1.0f);
+glm::mat4 view(1.0f);
 
-//Used to pass into uniform to determine the extent of mix of the 2 textures
-float blend = 0.5;
+unsigned int win_width = 800;
+unsigned int win_height = 800;
+
+double mouse_scroll_y_offset = 0;
+bool mouse_left_pressed = false;
+double mouse_left_press_x_pos = 0;
+double mouse_left_press_y_pos = 0;
+double mouse_left_current_x_pos = 0;
+double mouse_left_current_y_pos = 0;
+
+double camera_x_pos = 0;
+double camera_y_pos = 0;
+double camera_zoom = 1;

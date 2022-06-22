@@ -1,7 +1,23 @@
 #pragma once
+#include <vector>
+#include "glm/glm.hpp"
 //data
-extern float vertices[32];
-extern unsigned int indices[6];
-extern float colours[12];
-extern float texCoords[8];
-extern float blend;
+extern std::vector<float> vertices;
+
+extern glm::mat4 model;
+extern glm::mat4 view;
+
+extern unsigned int win_width;
+extern unsigned int win_height;
+
+extern double mouse_scroll_y_offset;
+extern bool mouse_left_pressed;
+extern double mouse_left_press_x_pos;
+extern double mouse_left_press_y_pos;
+extern double mouse_left_current_x_pos;
+extern double mouse_left_current_y_pos;
+
+extern double camera_x_pos;
+extern double camera_y_pos;
+extern double camera_zoom;
+

@@ -2,161 +2,273 @@
 #include <fstream>
 #include <streambuf>
 #include <cmath>
+#include <vector>
 #include <glad\glad.h>
 #include <GLFW\glfw3.h>
 #include "headers/func.h"
 #include "headers/data.h"
 #include "headers/shader.h"
+#include "headers/texture.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
-unsigned const int WIN_WIDTH = 800;
-unsigned const int WIN_HEIGHT = 600; 
+//TODO: Implement equation parser into fragment shader?
+//TODO: Add contourmode: both phase and modulus
+//TODO: Implement the full Riemann Zeta function
+struct Point {
+    float m_x;
+    float m_y;
+    Point(float x, float y) : m_x{x}, m_y{y}{}
+};
+/**
+ * @brief Generates ordered indices (of a square grid of points) needed to be passed into opengl for triangulation with right triangles.
+ * @param size square grid's dimension.
+ * @return std::vector<unsigned int> containing ordered indices for triangulation with right triangles.
+ */
+std::vector<unsigned int> generate_grid_indices(unsigned int size){
+    std::vector<unsigned int> r;
+    for(unsigned int i = 0; i <= size - 2; i++){
+        for(unsigned int j = 1; j <= size - 1; j++){
+            r.push_back(i*size + j - 1);
+            r.push_back(i*size + j - 1 + 1);
+            r.push_back(i*size + j - 1 + size);
+            r.push_back(i*size + j - 1 + size);
+            r.push_back(i*size + j - 1 + size + 1);
+            r.push_back(i*size + j - 1 + 1);
+        }
+    }
+    return r;
+}
+/**
+ * @brief Sets the contour shading to be used for domain colouring 
+ * 
+ */
+enum contourMode{
+    disable = 0,
+    modulus = 1,
+    phase = 2
+};
 
 int main(){
 
+    std::vector<Point> grid;
+    int span = 3; //* NEEDS TO BE ODD
+    float density = 0.05f;
+    if((span + 1) % 2){
+        std::cout << "WARNING: span NEEDS TO BE ODD." << std::endl;
+    }
+    for(int y = -(span - 1)/2; y <= (span - 1)/2; y++){
+        for(int x = -(span - 1)/2; x <= (span - 1)/2; x++){
+            // float norm_x = (float)x / ((float)(span - 1.0f)/2.0f); 
+            // float norm_y = (float)y / ((float)(span - 1.0f)/2.0f);
+            float norm_x = (float)x / density; 
+            float norm_y = (float)y / density;
+            grid.push_back(Point(norm_x, norm_y));
+        }
+    }
+    std::vector<unsigned int> indices = generate_grid_indices(span);
+    // for(auto i : indices){
+    //     std::cout << i << "\n";
+    // }
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
     
-    GLFWwindow* window = glfwCreateWindow(WIN_WIDTH,WIN_HEIGHT,"Learning OpenGL",NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(win_width,win_height,"Domain Colouring",NULL, NULL);
     if(window == NULL){
         std::cout << "Failed to create OpenGL window\n";
         glfwTerminate();
         return -1;
     }
     glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback); //This specifically resizes the window to the viewport once framebuffer_size_callback() gets called
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
         std::cout << "Failed to initialze GLAD\n";
         return -1;
     }
+    glfwSetScrollCallback(window, scroll_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
 
+    
     Shader myShader("./shaders/vertexShader1.vert","./shaders/fragmentShader1.frag");
 
-    //Create and start VAO binding (Need to capture glBindBuffer(),glBufferData(),glVertexAttribPointer(),glEnableVertexAttribArray(),glUseProgram() )
-    unsigned int VAO; //Tells opengl what data in VBO is and how it is formatted. 
-    unsigned int VBO_Vertex,VBO_Colour,VBO_TexCoords; //Stores vertices/vertex data to be passed into GPU for processing.
+    unsigned int VAO; 
+    unsigned int VBO_Vertex;
     unsigned int EBO;
     
     glGenVertexArrays(1,&VAO);
     glGenBuffers(1, &VBO_Vertex);
-    glGenBuffers(1, &VBO_Colour);
-    glGenBuffers(1, &VBO_TexCoords);
     glGenBuffers(1, &EBO);
 
     glBindVertexArray(VAO); //<--- Start of VAO Bind
     
-    glBindBuffer(GL_ARRAY_BUFFER, VBO_Vertex);//Buffer type of VBO is GL_ARRAY_BUFFER. 
-    // glVertexAttribPointer will take data from currently binded VBO 
-    // GL_STREAM_DRAW: the data is set only once and used by the GPU at most a few times.
-    // GL_STATIC_DRAW: the data is set only once and used many times.
-    // GL_DYNAMIC_DRAW: the data is changed a lot and used many times.
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO_Vertex); 
+    glBufferData(GL_ARRAY_BUFFER, grid.size() * sizeof(Point), &grid[0], GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO_Colour);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(colours), colours, GL_STATIC_DRAW);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(1);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO_TexCoords);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(texCoords), texCoords, GL_STATIC_DRAW);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(2);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO); //! do not unbind EBO while VAO is active as the bound EBO is stored in the VAO
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+    
 
     glBindVertexArray(0); //<--- End of VAO Bind
 
-    //Generate textures
-
-    
-    unsigned int texture1;
-    glGenTextures(1, &texture1);
-    glBindTexture(GL_TEXTURE_2D, texture1);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    
-    int tex_width, tex_height, tex_nrChannels;
-    //STBI reads image from up to down, while opengl reads image from down to up
-    stbi_set_flip_vertically_on_load(true);
-    unsigned char *data = stbi_load("textures/container.jpg", &tex_width, &tex_height, &tex_nrChannels, 0);
-    
-    if(data){
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, tex_width, tex_height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else{
-        std::cout << "Failed to load texture" << std::endl;
-    }
-    stbi_image_free(data);
-
-    unsigned int texture2;
-    glGenTextures(1, &texture2);
-    glBindTexture(GL_TEXTURE_2D, texture2);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    //stbi_set_flip_vertically_on_load(true);
-    data = stbi_load("textures/awesomeface.png", &tex_width, &tex_height, &tex_nrChannels, 0);
-
-    if(data){
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex_width, tex_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else{
-        std::cout << "Failed to load texture" << std::endl;
-    }
-    stbi_image_free(data);
-
-
-    //tell opengl which texture is assigned to each sampler in shader code. (only needs to be done once)
     myShader.use();
-    //glUniform1i(glGetUniformLocation(myShader.ID, "texture1"), 0);
-    //can assign texture to uniform through shaderclass too
-    myShader.setInt("texture1", 0);  //0 here points to the GL_TEXTURE0 texture unit
-    glUniform1i(glGetUniformLocation(myShader.ID, "texture2"), 1);
-    while(!glfwWindowShouldClose(window)){
 
-        // inputA
+    int setContourMode = contourMode::disable;
+    float blend = 1;
+    myShader.setInt("setContourMode", setContourMode);
+    myShader.setFloat("blend", blend);
+    myShader.setMat("model", model);
+    myShader.setMat("view", view);
+
+    bool button_r_pressed = false; //For hot shader reloading
+    bool button_f_pressed = false; //To toggle polygonmode
+    bool button_horizontal_pressed = false; //Change blend
+    bool button_space_pressed = false;
+    while(!glfwWindowShouldClose(window)){        
+        // input
         processInput(window);
-        
+        {   //SHADER RELOAD
+            if((glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS) && !button_r_pressed){
+                reloadShader(window, &myShader);
+                myShader.use();
+                myShader.setInt("setContourMode", setContourMode);
+                myShader.setFloat("blend", blend);
+                myShader.setMat("model", model);
+                myShader.setMat("view", view);
+                button_r_pressed = true;
+            }
+            if(glfwGetKey(window,GLFW_KEY_R) == GLFW_RELEASE){
+                button_r_pressed = false;
+            }
+            //TODO: REMOVE THIS POLYGON MODE TOGGLE
+            if(glfwGetKey(window,GLFW_KEY_F) == GLFW_PRESS && !button_f_pressed){
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                button_f_pressed = true;
+            }
+            if(glfwGetKey(window,GLFW_KEY_F) == GLFW_RELEASE){
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                button_f_pressed = false;
+            }
+            //TOGGLE CONTOUR
+            if(glfwGetKey(window,GLFW_KEY_SPACE) == GLFW_PRESS && !button_space_pressed){
+                switch (setContourMode){
+                    case contourMode::disable:
+                        setContourMode = contourMode::modulus;
+                        break;
+                    case contourMode::modulus:
+                        setContourMode = contourMode::phase;
+                        break;
+                    case contourMode::phase:
+                        setContourMode = contourMode::disable;
+                        break;
+                }
+                button_space_pressed = true;
+                myShader.setInt("setContourMode", setContourMode);
+            }
+            if(glfwGetKey(window,GLFW_KEY_SPACE) == GLFW_RELEASE){
+                button_space_pressed = false;
+            }
+            //CONTOUR DENISTY
+            if(glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS && !button_horizontal_pressed){
+                blend += 1.00f;
+                myShader.setFloat("blend", blend);
+                button_horizontal_pressed = true;
+            }
+            if(glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS && !button_horizontal_pressed){
+                blend -= 1.00f;
+                myShader.setFloat("blend", blend);
+                button_horizontal_pressed = true;
+            }
+            if((glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_RELEASE) && (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_RELEASE)){
+                button_horizontal_pressed = false;
+            }
+            if(glfwGetKey(window, GLFW_KEY_CAPS_LOCK) == GLFW_PRESS){
+                blend = 1;
+                myShader.setFloat("blend", blend);
+            } 
+            //CAMERA ZOOM
+            if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
+                view = glm::scale(view, glm::vec3(1.025f, 1.025f, 0.0f));
+                camera_zoom *= 1.025;
+                myShader.setMat("view", view);
+            }
+            if(glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
+                view = glm::scale(view, glm::vec3(1/1.025f, 1/1.025f, 0.0f));
+                camera_zoom *= 1/1.025f;
+                myShader.setMat("view", view);
+            }
+            if(glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS){
+                view = glm::mat4(1.0f);
+                camera_zoom = 1.0f;
+                myShader.setMat("view", view);
+            }
+
+            if(mouse_scroll_y_offset != 0){
+                view = glm::scale(view, glm::vec3(1.0f + mouse_scroll_y_offset, 1.0f + mouse_scroll_y_offset, 0.0f));
+                camera_zoom *= 1.0f + mouse_scroll_y_offset;
+                myShader.setMat("view", view);
+                mouse_scroll_y_offset = 0;
+            }
+            //CAMERA MOVEMENT
+            if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS){
+                model = glm::translate(model, glm::vec3(0.0f,-0.015f / camera_zoom,0.0f));
+                myShader.setMat("model", model);
+            }
+            if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS){
+                model = glm::translate(model, glm::vec3(0.0f,0.015f / camera_zoom,0.0f));
+                myShader.setMat("model", model);
+            }
+            if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS){
+                model = glm::translate(model, glm::vec3(0.015f / camera_zoom,0.0f,0.0f));
+                myShader.setMat("model", model);
+            }
+            if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS){
+                model = glm::translate(model, glm::vec3(-0.015f / camera_zoom,0.0f,0.0f));
+                myShader.setMat("model", model);
+            }
+            if(glfwGetKey(window, GLFW_KEY_H) == GLFW_PRESS){
+                model = glm::mat4(1.0f);
+                myShader.setMat("model", model);
+            }
+        }
+
+        //Handle left mouse press down state's temporary model value;
+        if((glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)){
+            glfwGetCursorPos(window, &mouse_left_current_x_pos, &mouse_left_current_y_pos);
+            if(!mouse_left_pressed){
+                glfwGetCursorPos(window, &mouse_left_press_x_pos, &mouse_left_press_y_pos);
+            }
+            mouse_left_pressed = true;
+            //Temporarily move camera
+            double mouse_left_x_delta = -(mouse_left_press_x_pos - mouse_left_current_x_pos);
+            double mouse_left_y_delta = (mouse_left_press_y_pos - mouse_left_current_y_pos);
+            glm::mat4 temp_model = model;
+            temp_model = glm::translate(model,glm::vec3(2 * mouse_left_x_delta/(win_width * camera_zoom), 2 * mouse_left_y_delta/(win_height * camera_zoom), 0.0f));
+            myShader.setMat("model", temp_model);
+        }
+        if((glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) && mouse_left_pressed){
+            mouse_left_pressed = false;
+            //Lock in release camera position
+            double mouse_left_x_delta = -(mouse_left_press_x_pos - mouse_left_current_x_pos);
+            double mouse_left_y_delta = (mouse_left_press_y_pos - mouse_left_current_y_pos);
+            model = glm::translate(model,glm::vec3(2 * mouse_left_x_delta/(win_width * camera_zoom), 2 * mouse_left_y_delta/(win_height * camera_zoom), 0.0f));
+            myShader.setMat("model", model);
+        }
+
         //rendering commands
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        
-        
-        glActiveTexture(GL_TEXTURE0); //Using texture units 
-        glBindTexture(GL_TEXTURE_2D, texture1);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, texture2);
-        
-        myShader.use();
-        glBindBuffer(GL_ARRAY_BUFFER,VBO_Vertex); // Binded to update vertex pos
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+                
+        myShader.use();        
+        glBindVertexArray(VAO);
 
-        glBindBuffer(GL_ARRAY_BUFFER,VBO_Colour);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(colours), colours, GL_DYNAMIC_DRAW);
-
-
-        myShader.setFloat("blend", blend);
-
-        glBindVertexArray(VAO); //Only because we unbinded VAO;
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)0);
+        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
         //check and call events and swap buffers
 
         glBindVertexArray(0);
