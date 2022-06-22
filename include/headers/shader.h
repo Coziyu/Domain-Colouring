@@ -14,7 +14,9 @@ class Shader
 public:
     // the program ID
     unsigned int ID;
-  
+    const char* fragmentPath;
+    const char* vertexPath;
+
     // constructor reads and builds the shader
     Shader(const char* vertexPath, const char* fragmentPath);
     // use/activate the shader
@@ -26,5 +28,6 @@ public:
     void setMat(const std::string &name, glm::mat4 value) const; //TODO: Overload with other mat types when needed
     //recompile shaders
     void reload(const char* vertexPath, const char* fragmentPath);
+    void reload();
 };
   
