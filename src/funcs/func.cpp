@@ -5,6 +5,8 @@
 #include "headers/func.h"
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height){
+    win_width = width;
+    win_height = height;
     glViewport(0, 0, width, height);
 }
 void processInput(GLFWwindow *window){

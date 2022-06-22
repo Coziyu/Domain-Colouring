@@ -15,9 +15,6 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
-unsigned const int WIN_WIDTH = 800;
-unsigned const int WIN_HEIGHT = 800; 
-
 //TODO: Implement equation parser into fragment shader?
 //TODO: Add contourmode: both phase and modulus
 //TODO: Implement the full Riemann Zeta function
@@ -81,7 +78,7 @@ int main(){
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
     
-    GLFWwindow* window = glfwCreateWindow(WIN_WIDTH,WIN_HEIGHT,"Domain Colouring",NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(win_width,win_height,"Domain Colouring",NULL, NULL);
     if(window == NULL){
         std::cout << "Failed to create OpenGL window\n";
         glfwTerminate();
@@ -252,7 +249,7 @@ int main(){
             double mouse_left_x_delta = -(mouse_left_press_x_pos - mouse_left_current_x_pos);
             double mouse_left_y_delta = (mouse_left_press_y_pos - mouse_left_current_y_pos);
             glm::mat4 temp_model = model;
-            temp_model = glm::translate(model,glm::vec3(2 * mouse_left_x_delta/(WIN_WIDTH * camera_zoom), 2 * mouse_left_y_delta/(WIN_HEIGHT * camera_zoom), 0.0f));
+            temp_model = glm::translate(model,glm::vec3(2 * mouse_left_x_delta/(win_width * camera_zoom), 2 * mouse_left_y_delta/(win_height * camera_zoom), 0.0f));
             myShader.setMat("model", temp_model);
         }
         if((glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) && mouse_left_pressed){
@@ -260,7 +257,7 @@ int main(){
             //Lock in release camera position
             double mouse_left_x_delta = -(mouse_left_press_x_pos - mouse_left_current_x_pos);
             double mouse_left_y_delta = (mouse_left_press_y_pos - mouse_left_current_y_pos);
-            model = glm::translate(model,glm::vec3(2 * mouse_left_x_delta/(WIN_WIDTH * camera_zoom), 2 * mouse_left_y_delta/(WIN_HEIGHT * camera_zoom), 0.0f));
+            model = glm::translate(model,glm::vec3(2 * mouse_left_x_delta/(win_width * camera_zoom), 2 * mouse_left_y_delta/(win_height * camera_zoom), 0.0f));
             myShader.setMat("model", model);
         }
 

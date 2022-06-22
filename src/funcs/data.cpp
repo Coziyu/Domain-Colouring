@@ -1,5 +1,6 @@
 #include <vector>
 #include "glm/glm.hpp"
+#include "headers/data.h"
 
 std::vector<float> vertices = {
    0.5f,  0.5f,  0.0f,
@@ -8,9 +9,11 @@ std::vector<float> vertices = {
   -0.5f,  0.5f,  0.0f
 };
 
-  glm::mat4 model(1.0f);
-  glm::mat4 view(1.0f);
+glm::mat4 model(1.0f);
+glm::mat4 view(1.0f);
 
+unsigned int win_width = 800;
+unsigned int win_height = 800;
 
 double mouse_scroll_y_offset = 0;
 bool mouse_left_pressed = false;

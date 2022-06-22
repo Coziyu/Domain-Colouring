@@ -7,6 +7,8 @@ extern std::vector<float> vertices;
 extern glm::mat4 model;
 extern glm::mat4 view;
 
+extern unsigned int win_width;
+extern unsigned int win_height;
 
 extern double mouse_scroll_y_offset;
 extern bool mouse_left_pressed;
