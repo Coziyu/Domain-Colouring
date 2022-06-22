@@ -18,7 +18,6 @@
 unsigned const int WIN_WIDTH = 800;
 unsigned const int WIN_HEIGHT = 800; 
 
-//* FRAGMENT INTERPOLATION ACTUALLY PASSES INTERPOLATED COORDINATED INTO THE FRAGMENT SHADER!!!!!!!
 //TODO: Implement equation parser into fragment shader?
 //TODO: Add contourmode: both phase and modulus
 //TODO: Implement the full Riemann Zeta function
@@ -27,8 +26,12 @@ struct Point {
     float m_y;
     Point(float x, float y) : m_x{x}, m_y{y}{}
 };
-
-std::vector<unsigned int> generate_grid_indices(unsigned int size){ //Generate indices for triangulation
+/**
+ * @brief Generates ordered indices (of a square grid of points) needed to be passed into opengl for triangulation with right triangles.
+ * @param size square grid's dimension.
+ * @return std::vector<unsigned int> containing ordered indices for triangulation with right triangles.
+ */
+std::vector<unsigned int> generate_grid_indices(unsigned int size){
     std::vector<unsigned int> r;
     for(unsigned int i = 0; i <= size - 2; i++){
         for(unsigned int j = 1; j <= size - 1; j++){
@@ -42,7 +45,10 @@ std::vector<unsigned int> generate_grid_indices(unsigned int size){ //Generate i
     }
     return r;
 }
-
+/**
+ * @brief Sets the contour shading to be used for domain colouring 
+ * 
+ */
 enum contourMode{
     disable = 0,
     modulus = 1,
