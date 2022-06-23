@@ -55,7 +55,7 @@ enum contourMode{
 int main(){
 
     std::vector<Point> grid;
-    int span = 3; //* NEEDS TO BE ODD
+    int span = 5; //* NEEDS TO BE ODD
     float density = 0.05f;
     if((span + 1) % 2){
         std::cout << "WARNING: span NEEDS TO BE ODD." << std::endl;
