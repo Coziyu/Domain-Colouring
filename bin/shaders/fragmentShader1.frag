@@ -19,8 +19,8 @@ vec2 c_cos(vec2 z);
 vec2 c_tan(vec2 z);
 vec2 c_exp(vec2 z);
 vec2 c_log(vec2 z);    
-vec2 c_eta(vec2 z, int terms);
-vec2 c_zeta(vec2 z, int terms);
+vec2 c_eta(vec2 z);
+vec2 c_zeta(vec2 z);
 vec2 c_gamma(vec2 z);
 
 
@@ -106,34 +106,86 @@ vec2 c_log(vec2 z)
     return vec2(log(c_modulus(z)), c_argument(z));
 }            
 
-vec2 c_eta(vec2 z, int terms){
-    vec2 temp = vec2(0.0, 0.0);
-    for(int i = 1; i <= terms; i++){
-        temp += (i % 2) == 1 ? c_div(vec2(1.0,0.0),c_pow(vec2(i,0), z)) : -1 * c_div(vec2(1.0,0.0),c_pow(vec2(i,0), z));
-    }
-    return temp;
+vec2 c_eta(vec2 z){
+    //! Naive implementation doesn't work for some reason
+    // vec2 temp = vec2(0.0, 0.0);
+    // for(int i = 1; i <= terms; i++){
+    //    temp += (i % 2) == 1 ? c_pow(i, -z) : -1 * c_pow(i, -z);
+    // }
+    // return temp;
+    //* Strange eta function approximation/implementation taken from jcponce's function plotter.
+    //* https://github.com/jcponce/complex/blob/gh-pages/function-plotter/hsv.htm
+    vec2 total = vec2(0,0);
+    total += 1.0 *c_pow( 1.0 ,-z);
+    total -= 1.0 *c_pow( 2.0 ,-z);
+    total += 1.0 *c_pow( 3.0 ,-z);
+    total -= 1.0 *c_pow( 4.0 ,-z);
+    total += 1.0 *c_pow( 5.0 ,-z);
+    total -= 1.0 *c_pow( 6.0 ,-z);
+    total += 1.0 *c_pow( 7.0 ,-z);
+    total -= 1.0 *c_pow( 8.0 ,-z);
+    total += 1.0 *c_pow( 9.0 ,-z);
+    total -= 0.999999999999 *c_pow( 10.0 ,-z);
+    total += 0.99999999998 *c_pow( 11.0 ,-z);
+    total -= 0.999999999735 *c_pow( 12.0 ,-z);
+    total += 0.999999997107 *c_pow( 13.0 ,-z);
+    total -= 0.999999973564 *c_pow( 14.0 ,-z);
+    total += 0.99999979531 *c_pow( 15.0 ,-z);
+    total -= 0.999998644649 *c_pow( 16.0 ,-z);
+    total += 0.999992264978 *c_pow( 17.0 ,-z);
+    total -= 0.99996169714 *c_pow( 18.0 ,-z);
+    total += 0.999834476711 *c_pow( 19.0 ,-z);
+    total -= 0.999372646647 *c_pow( 20.0 ,-z);
+    total += 0.997905448059 *c_pow( 21.0 ,-z);
+    total -= 0.993815695896 *c_pow( 22.0 ,-z);
+    total += 0.983794506135 *c_pow( 23.0 ,-z);
+    total -= 0.962183592565 *c_pow( 24.0 ,-z);
+    total += 0.921145847114 *c_pow( 25.0 ,-z);
+    total -= 0.852537436761 *c_pow( 26.0 ,-z);
+    total += 0.751642715653 *c_pow( 27.0 ,-z);
+    total -= 0.621346807473 *c_pow( 28.0 ,-z);
+    total += 0.47396013731 *c_pow( 29.0 ,-z);
+    total -= 0.328445893083 *c_pow( 30.0 ,-z);
+    total += 0.203648931086 *c_pow( 31.0 ,-z);
+    total -= 0.111255622362 *c_pow( 32.0 ,-z);
+    total += 0.0526848641535 *c_pow( 33.0 ,-z);
+    total -= 0.0212286807239 *c_pow( 34.0 ,-z);
+    total += 0.0071162051027 *c_pow( 35.0 ,-z);
+    total -= 0.00192702152025 *c_pow( 36.0 ,-z);
+    total += 0.000404373755448 *c_pow( 37.0 ,-z);
+    total -= 6.16229812906e-05 *c_pow( 38.0 ,-z);
+    total += 6.06127684826e-06 *c_pow( 39.0 ,-z);
+    total -= 2.8863223087e-07 *c_pow( 40.0 ,-z);
+
+    return total;
 }
 
 //! Not to be called directly
-vec2 c_zeta_p(vec2 z, int terms){  
+vec2 c_zeta_p(vec2 z){  
     //Dirichlet eta function
-    vec2 temp = c_eta(z, terms);
+    vec2 temp = c_eta(z);
     //Zeta function for Re(z) > 0 by dividing eta fucntion
     //temp = c_div(temp, (vec2(1,0) - c_div(vec2(2.0,0.0),c_pow(vec2(2,0), z))));
     return c_div(temp, (vec2(1,0) - c_pow(vec2(2,0), vec2(1,0) - z)));
 }
 //! Not to be called directly
-vec2 c_zeta_n(vec2 z, int terms){
-    vec2 temp = c_zeta_p(vec2(1,0) - z, terms);
+vec2 c_zeta_n(vec2 z){
+    vec2 temp = c_zeta_p(vec2(1,0) - z);
     // Below is why we need operator overloading in glsl. Could have easily been:
     // 2^s * M_PI^(s-1) * c_sin(M_PI/2 * s) * c_gamma(1 - s) * c_zeta_p(h-s, terms);
-    return c_mul(c_mul(c_mul(c_mul(c_pow(vec2(2,0), z), c_pow(vec2(M_PI, 0), z - vec2(1,0))), c_sin((M_PI / 2) * z)), c_gamma(vec2(1,0) - z)), c_zeta_p(vec2(1,0) - z, terms));
+    return c_mul(c_mul(c_mul(c_mul(
+    c_pow(vec2(2,0), z),
+    c_pow(vec2(M_PI, 0), z - vec2(1,0))), 
+    c_sin((M_PI / 2) * z)), 
+    c_gamma(vec2(1,0) - z)), 
+    c_zeta_p(vec2(1,0) - z));
 }
 //? WHY DOESNT THIS WORK?
-vec2 c_zeta(vec2 z, int terms){
-    if(z.x > 0) 
-        return c_zeta_p(z, terms);
-    else return c_zeta_n(z, terms);
+vec2 c_zeta(vec2 z){
+    if(z.x > 0){
+        return c_zeta_p(z);
+    }
+    else return c_zeta_n(z);
 }
 
 /**************************************************
@@ -268,12 +320,10 @@ vec2 f(vec2 z){ //Edit this
     //return (c_pow(z,3) - vec2(0.5,-0.5));
     //return c_pow(c_log(z), z);
     //return c_pow(z - vec2(1.0, 0),c_log(z - vec2(0, -1.0)));
-    return c_gamma(z);
+    return c_zeta(z);
 }
 
 void main(){
     vec2 z = f(out_vecCol.xy);
-    //z = c_mul(c_pow(0.1,2 * z),2 * z);
-    //z = c_pow(z*2, 3) - vec2(1,0);
     FragColour = colour_point(z, setContourMode);
 }
