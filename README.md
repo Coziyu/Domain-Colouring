@@ -35,10 +35,10 @@ ___
 - vec2 c_tan(vec2 z)
 - vec2 c_exp(vec2 z)
 - vec2 c_log(vec2 z)    
-- vec2 c_eta(vec2 z, int terms)
+- vec2 c_eta(vec2 z)
 - vec2 c_gamma(vec2 z)
+- vec2 c_zeta(vec2 z)
 
 **Complex functions to be implemented:**
 ___
-- vec2 c_zeta(vec2 z, int terms)
 
