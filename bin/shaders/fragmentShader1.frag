@@ -291,24 +291,30 @@ vec4 colour_point(vec2 z, int setContourMode){
     if(phi < 0){
         phi += 2 * M_PI;
     }
-    float modulus_temp = fract(blend * log2(r));
-    float contour_shading_modulus = modulus_temp > 0.5 ? modulus_temp : modulus_temp + 0.5;
-    float phase_temp = fract((2 * (blend + 3) * phi/M_PI)) + 0.5;
-    float contour_shading_phase = phase_temp;
 
     float h = phi;
     float s = 1.0f;
     float l = 0.5f;
     switch (setContourMode){
         case 0:
-            l = 0.5f;
+            l = 0.45f;
             break;
-        case 1:
-            l = (2 / M_PI) * atan(contour_shading_modulus); //Modulus Contour
+        case 1:{
+            float contour_shading_modulus = 0.5 + 0.5 * fract((blend + 1) * log(r));
+            l =  (2 / M_PI) * atan(contour_shading_modulus);
             break;
-        case 2:
-            l = (2 / M_PI) * atan(contour_shading_phase); //Phase Contour
+        }
+        case 2:{
+            float contour_shading_phase = 0.5 + 0.5 * fract(blend * 10 / M_PI * phi);
+            l = (2 / M_PI) * atan(contour_shading_phase);
             break;
+        }
+        case 3:{
+            float contour_shading_modulus = 0.5 + 0.5 * fract((blend + 1) * log(r));
+            float contour_shading_phase = 0.5 + 0.5 * fract(blend * 10 / M_PI * phi);
+            l = (2 / M_PI) * atan(contour_shading_modulus * contour_shading_phase);
+            break;
+        }
     }
     return vec4(hsl_to_rgb(h, s, l), 1.0f);
 }

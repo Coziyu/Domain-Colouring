@@ -15,9 +15,9 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
-//TODO: Implement equation parser into fragment shader?
-//TODO: Add contourmode: both phase and modulus
-//TODO: Implement the full Riemann Zeta function
+//TODO: Implement equation parser into fragment shader
+//TODO: Implement IMGUI UI into this
+
 struct Point {
     float m_x;
     float m_y;
@@ -49,7 +49,8 @@ std::vector<unsigned int> generate_grid_indices(unsigned int size){
 enum contourMode{
     disable = 0,
     modulus = 1,
-    phase = 2
+    phase = 2,
+    both = 3
 };
 
 int main(){
@@ -165,6 +166,9 @@ int main(){
                         setContourMode = contourMode::phase;
                         break;
                     case contourMode::phase:
+                        setContourMode = contourMode::both;
+                        break;
+                    case contourMode::both:
                         setContourMode = contourMode::disable;
                         break;
                 }
