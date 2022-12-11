@@ -14,6 +14,7 @@
 
 //TODO: Implement equation parser into fragment shader
 //TODO: Implement IMGUI UI into this
+//TODO: DELETE THIS COMMENT
 
 struct Point {
     float m_x;
